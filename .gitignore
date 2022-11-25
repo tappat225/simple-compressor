@@ -1,0 +1,16 @@
+# ignore all
+*
+
+!src
+!src/**
+
+# file types to be uploaded
+!*.md
+!*.c
+!*.h
+!*.txt
+!makefile
+
+# files to be uploaded
+!LICENSE
+!.gitignore

@@ -1,16 +1,16 @@
 # ignore all
 *
 
-!src
-!src/**
-!test
+!/src/
+#!/src/**
+!/test/
 
 # file types to be uploaded
 !*.md
 !*.c
 !*.h
 !*.txt
-!makefile
+!Makefile
 
 # files to be uploaded
 !LICENSE

@@ -1,6 +1,6 @@
 # simple-compressor
 
-A simple compressor based on hoffman compress algorithm.
+A simple compressor based on huffman compress algorithm.
 
 ## Design
 
@@ -27,6 +27,19 @@ file content
 ```
 
 **Decode**
+
+two ways:
+
+1.using huffman tree from encoding part.
+
+```
+file content
+    --> content string
+        --> decode content string with huffman tree
+            --> save to file
+```
+
+2.using character table but it requies the compressed bit stream must be divied by a special sign from bit to bit.
 
 ```
 file content

@@ -3,6 +3,7 @@
 
 !src
 !src/**
+!test
 
 # file types to be uploaded
 !*.md

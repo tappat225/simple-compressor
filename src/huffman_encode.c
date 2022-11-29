@@ -9,6 +9,8 @@
 #include "type_format.h"
 #include "huffman.h"
 
+#define DEBUG_D
+#ifdef  DEBUG_D
 void debug_print_table(freq_table_t *table, int len)
 {
     int i;
@@ -17,6 +19,23 @@ void debug_print_table(freq_table_t *table, int len)
         printf("id = %d, freq_val = %d, ch = %c, ascii val = %d \n", i, table[i].freq, table[i].ch, table[i].ch);
     }
 }
+
+void print_tree_recur(node_t *node, char op[]) {
+    if (node == NULL) {
+        return;
+    }
+
+    printf("\n op: %s\n", op);
+    printf("freq = %d, ch = %c\n", node->freq_val, node->ch);
+    print_tree_recur(node->lchild, "left");
+    print_tree_recur(node->rchild, "right");
+}
+
+void print_tree(node_t *root) {
+    print_tree_recur(root, "root");
+}
+
+#endif
 
 /**
  * count characters frequence and store into a table
@@ -106,8 +125,10 @@ node_t *generate_huffman_tree(freq_table_t *table)
 {
     freq_table_t *tb;
     node_t *root;
-    node_t *lchild;
-    node_t *rchild;
+    node_t *root_stash;
+    node_t *root_extra;     /* For two nodes with same freq situation. */
+    node_t *node_one;
+    node_t *node_two;
 
     if (table == NULL) {
         printf("table is NULL");
@@ -120,21 +141,39 @@ node_t *generate_huffman_tree(freq_table_t *table)
         return NULL;
     }
 
-    root = NULL;
+#ifdef DEBUG_D
+    // debug_print_table(table, ASCII_NUM_TOTAL);
+#endif
+
     tb = table;
+    root = create_node(tb->freq, 0);
+    tb++;
+    if ((tb == NULL) || (tb->freq == 0)) {
+        printf("Warning in %s(), line %d: are you going to build huffman tree with "\
+        "only one element?\n", __func__, __LINE__);
+    }
+
     while ((NULL != tb) && (tb->freq != 0)) {
-        lchild = create_node(tb->freq, tb->ch);
-        root = lchild;
-        printf("root->freq_val = %d, root->ch = %c\n", root->freq_val, root->ch);
-        if (NULL == ++tb) {
-            break;
+        node_one = create_node(tb->freq, tb->ch);
+        if (((tb + 1) != NULL) && (tb->freq == (tb + 1)->freq)) {
+            node_two = create_node((tb + 1)->freq, (tb + 1)->ch);
+            root_extra = create_node((tb->freq) * 2, 0);
+            root_extra->lchild = node_one;
+            root_extra->rchild = node_two;
+            root_stash = root;
+            root = create_node(0, 0);
+            root->lchild = root_stash;
+            root->rchild = root_extra;
+            root->freq_val = root->lchild->freq_val + root->rchild->freq_val;
+            tb += 2;
+            continue;
         }
 
-        /* TODO: optimize case when two series elem with same freq_val. */
-        rchild = create_node(tb->freq, tb->ch);
-        root = create_node((lchild->freq_val + rchild->freq_val), 0);
-        root->lchild = lchild;
-        root->rchild = rchild;
+        root_stash = root;
+        root = create_node(0, 0);
+        root->lchild = root_stash;
+        root->rchild = node_one;
+        root->freq_val = root->lchild->freq_val + root->rchild->freq_val;
         tb++;
     }
 
@@ -147,7 +186,7 @@ node_t *generate_huffman_tree(freq_table_t *table)
  */
 map_table_t *generate_mapping_table(node_t *root, int elem_num)
 {
-
+    return NULL;
 }
 
 int huffman_encode(char *string, int str_len)
@@ -163,5 +202,6 @@ int huffman_encode(char *string, int str_len)
         return EXE_ERROR;
     }
 
+    print_tree(huffman_tree);
     return EXE_OK;
 }

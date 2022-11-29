@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "huffman.h"
 #include "type_format.h"
 
@@ -36,8 +37,9 @@ char *get_file_content(const char *input_file_path)
 
 int main(int argc, char *argv[])
 {
-    char test_string[] = "ccdabbs sdda";
-    if (huffman_encode(test_string, 12) == EXE_OK) {
+    char test_string[] = "a";
+    int len = strlen(test_string);
+    if (huffman_encode(test_string, len) == EXE_OK) {
         printf("ok!\n");
     }
 

@@ -35,6 +35,11 @@ void destory_node(node_t **node_paddr)
     this_node = NULL;
 }
 
+void destory_tree(node_t *root)
+{
+    
+}
+
 void destroyHuffmanTree(node_t **root)
 {
     

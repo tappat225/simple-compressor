@@ -9,8 +9,7 @@
 #include "type_format.h"
 #include "huffman.h"
 
-
-void debug_print_table(freTable_t *table, int len)
+void debug_print_table(freq_table_t *table, int len)
 {
     int i;
 
@@ -22,37 +21,38 @@ void debug_print_table(freTable_t *table, int len)
 /**
  * count characters frequence and store into a table
  * 
- * @param inputString   string to be encoded.
+ * @param input_string   string to be encoded.
  * @param str_len       length of string, doesn't include '\0'.
  * @param table         frequence count table
  */
-void initFreqTable(char *inputString, int str_len, freTable_t *table)
+void init_freq_table(char *input_string, int str_len, freq_table_t *table)
 {
-    int i;
+    int i, t_index;
     char this_ch;
 
-    if (NULL == inputString) {
+    if (NULL == input_string) {
         return;
     }
 
     for (i = 0; i < str_len; i++) {
-        this_ch = inputString[i];
+        this_ch = input_string[i];
+        t_index = (int)this_ch;
         /* printf("tmp ascii = %d\n", this_ch); */
-        table[this_ch].freq += 1;
-        table[this_ch].ch = this_ch;
+        table[t_index].freq += 1;
+        table[t_index].ch = this_ch;
     }
 }
 
 /* Exchange two elements in table */
-static void table_exchange(freTable_t *table, int index1, int index2)
+static void table_exchange(freq_table_t *table, int index1, int index2)
 {
-    freTable_t temp;
+    freq_table_t temp;
     temp = table[index1];
     table[index1] = table[index2];
     table[index2] = temp;
 }
 
-static void bubbleSort(freTable_t *table, int len)
+static void bubble_sort(freq_table_t *table, int len)
 {
     int i;
 
@@ -65,7 +65,7 @@ static void bubbleSort(freTable_t *table, int len)
     }
 }
 
-static void sortTable(freTable_t *table, int len_total)
+static void sort_table(freq_table_t *table, int len_total)
 {
     int left, right;
 
@@ -89,7 +89,7 @@ static void sortTable(freTable_t *table, int len_total)
         right += (table[right].freq == 0)? -1 : 0;
     }
 
-    bubbleSort(table, left);
+    bubble_sort(table, left);
     /* 
      *  now the table frequence seqence should be
      * in format {1, 1, 2, 2, 3, 4, 0, 0, ...}
@@ -102,9 +102,9 @@ static void sortTable(freTable_t *table, int len_total)
  * @param table     frequence table.
  * 
  */
-node_t *generateHuffmanTree(freTable_t *table)
+node_t *generate_huffman_tree(freq_table_t *table)
 {
-    freTable_t *tb;
+    freq_table_t *tb;
     node_t *root;
     node_t *lchild;
     node_t *rchild;
@@ -114,7 +114,7 @@ node_t *generateHuffmanTree(freTable_t *table)
         return NULL;
     }
 
-    sortTable(table, ASCII_NUM_TOTAL);
+    sort_table(table, ASCII_NUM_TOTAL);
     if (table[0].freq == 0) {
         printf("first elem of table is 0\n");
         return NULL;
@@ -141,15 +141,24 @@ node_t *generateHuffmanTree(freTable_t *table)
     return root;
 }
 
-int huffmanEncode(char *string, int str_len)
+/**
+ * 
+ * @param root      root of huffman tree
+ */
+map_table_t *generate_mapping_table(node_t *root, int elem_num)
 {
-    node_t *huffmanTree;
-    freTable_t feq_table[ASCII_NUM_TOTAL];
 
-    memset(feq_table, 0, sizeof(freTable_t) * ASCII_NUM_TOTAL);
-    initFreqTable(string, str_len, feq_table);
-    huffmanTree = generateHuffmanTree(feq_table);
-    if (huffmanTree == NULL) {
+}
+
+int huffman_encode(char *string, int str_len)
+{
+    node_t *huffman_tree;
+    freq_table_t feq_table[ASCII_NUM_TOTAL];
+
+    memset(feq_table, 0, sizeof(freq_table_t) * ASCII_NUM_TOTAL);
+    init_freq_table(string, str_len, feq_table);
+    huffman_tree = generate_huffman_tree(feq_table);
+    if (huffman_tree == NULL) {
         printf("wtf??\n");
         return EXE_ERROR;
     }

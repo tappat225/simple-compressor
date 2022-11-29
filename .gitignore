@@ -4,6 +4,7 @@
 !/src/
 #!/src/**
 !/test/
+!/include/
 
 # file types to be uploaded
 !*.md

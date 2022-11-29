@@ -11,6 +11,9 @@
 /* Character number in standard ascii table. */
 #define ASCII_NUM_TOTAL 128
 
+/* max length of bit stream 010001... */
+#define MAX_BIT_LEN 128
+
 #define EXE_OK      0
 #define EXE_ERROR   -1
 
@@ -20,6 +23,11 @@ typedef unsigned int    u32;
 typedef struct freqenceCounterTable {
     u32 freq;
     char ch;
-} freTable_t;
+} freq_table_t;
+
+typedef struct huffmanMappingTable {
+    char origin[MAX_BIT_LEN];
+    char compressed[MAX_BIT_LEN];
+} map_table_t;
 
 #endif /*_TYPE_FORMAT_H_*/

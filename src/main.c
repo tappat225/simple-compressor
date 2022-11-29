@@ -10,34 +10,34 @@
 #include "type_format.h"
 
 /* Convert input file to string. */
-char *getFileContent(const char *inputFilePath)
+char *get_file_content(const char *input_file_path)
 {
-    FILE *inputFile;
-    char *fileContent;
-    int contentLength;
+    FILE *input_file;
+    char *file_content;
+    int content_length;
 
-    inputFile = fopen(inputFilePath, "rb");
-    if (NULL == inputFile) {
+    input_file = fopen(input_file_path, "rb");
+    if (NULL == input_file) {
         return NULL;
     }
 
-    fseek(inputFile, 0, SEEK_END);
-    contentLength = ftell(inputFile);
-    fseek(inputFile, 0, SEEK_SET);
-    fileContent = (char*)malloc(contentLength);
-    if (fileContent) {
-        fread(fileContent, 1, contentLength, inputFile);
+    fseek(input_file, 0, SEEK_END);
+    content_length = ftell(input_file);
+    fseek(input_file, 0, SEEK_SET);
+    file_content = (char*)malloc(content_length);
+    if (file_content) {
+        fread(file_content, 1, content_length, input_file);
     }
 
-    fclose(inputFile);
+    fclose(input_file);
 
-    return fileContent;
+    return file_content;
 }
 
 int main(int argc, char *argv[])
 {
     char test_string[] = "ccdabbs sdda";
-    if (huffmanEncode(test_string, 12) == EXE_OK) {
+    if (huffman_encode(test_string, 12) == EXE_OK) {
         printf("ok!\n");
     }
 

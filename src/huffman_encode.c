@@ -15,24 +15,42 @@ void debug_print_table(freq_table_t *table, int len)
 {
     int i;
 
+    printf("\n\t------------- DEBUG PRINT TABLE ---------------\n");
     for (i = 0; i < len; i++) {
-        printf("id = %d, freq_val = %d, ch = %c, ascii val = %d \n", i, table[i].freq, table[i].ch, table[i].ch);
+        printf("id = %d, freq_val = %d, ch = %c, ascii val = %d \n", i,\
+            table[i].freq, table[i].ch, table[i].ch);
     }
 }
 
-void print_tree_recur(node_t *node, char op[]) {
+void print_tree_recur(node_t *node, char op[], int level) {
     if (node == NULL) {
         return;
     }
 
     printf("\n op: %s\n", op);
-    printf("freq = %d, ch = %c\n", node->freq_val, node->ch);
-    print_tree_recur(node->lchild, "left");
-    print_tree_recur(node->rchild, "right");
+    printf("freq = %d, ch = %c, level = %d\n", node->freq_val, node->ch,\
+        level);
+    print_tree_recur(node->lchild, "left", level + 1);
+    print_tree_recur(node->rchild, "right", level + 1);
 }
 
 void print_tree(node_t *root) {
-    print_tree_recur(root, "root");
+    printf("\n\t------------- DEBUG PRINT TREE ---------------\n");
+    print_tree_recur(root, "root", 0);
+}
+
+void print_mapping_table(map_table_t *t)
+{
+    map_table_t *tp;
+
+    tp = t;
+    printf("\n\t------------- DEBUG PRINT MAPPING TABLE ---------------\n");
+    while (tp != NULL && tp->origin_ch >= 'a') {
+        printf("origin = %c, compressed = %s\n", tp->origin_ch,\
+            tp->compressed_bits);
+        tp++;
+    }
+    
 }
 
 #endif
@@ -121,7 +139,7 @@ static void sort_table(freq_table_t *table, int len_total)
  * @param table     frequence table.
  * 
  */
-node_t *generate_huffman_tree(freq_table_t *table)
+node_t *generate_huffman_tree(freq_table_t *table, int *elem_num)
 {
     freq_table_t *tb;
     node_t *root;
@@ -149,12 +167,13 @@ node_t *generate_huffman_tree(freq_table_t *table)
     root = create_node(tb->freq, 0);
     tb++;
     if ((tb == NULL) || (tb->freq == 0)) {
-        printf("Warning in %s(), line %d: are you going to build huffman tree with "\
-        "only one element?\n", __func__, __LINE__);
+        pr_warning("Are you going to build huffman tree with only one "\
+        "element?");
     }
 
     while ((NULL != tb) && (tb->freq != 0)) {
         node_one = create_node(tb->freq, tb->ch);
+        /* Situation when two new elements have same value. */
         if (((tb + 1) != NULL) && (tb->freq == (tb + 1)->freq)) {
             node_two = create_node((tb + 1)->freq, (tb + 1)->ch);
             root_extra = create_node((tb->freq) * 2, 0);
@@ -166,6 +185,7 @@ node_t *generate_huffman_tree(freq_table_t *table)
             root->rchild = root_extra;
             root->freq_val = root->lchild->freq_val + root->rchild->freq_val;
             tb += 2;
+            *elem_num += 2;
             continue;
         }
 
@@ -175,9 +195,32 @@ node_t *generate_huffman_tree(freq_table_t *table)
         root->rchild = node_one;
         root->freq_val = root->lchild->freq_val + root->rchild->freq_val;
         tb++;
+        *elem_num += 1;
     }
 
     return root;
+}
+
+static void find_and_set_map_recus(node_t *node, map_table_t **tp_p, int deep)
+{
+    pr_debug("deep = %d", deep);
+    if ((node->lchild == NULL) && (node->rchild == NULL)) {
+        pr_debug("node->ch = %c", node->ch);
+        (*tp_p)->origin_ch = node->ch;
+        (*tp_p)->compressed_bits[deep] = '\0';
+        (*tp_p)++;
+        return;
+    }
+
+    if (node->rchild != NULL) {
+        pr_debug("go right");
+        (*tp_p)->compressed_bits[deep] = 1;
+        find_and_set_map_recus(node->rchild, tp_p, deep + 1);
+    }
+
+    pr_debug("go left");
+    (*tp_p)->compressed_bits[deep] = 0;
+    find_and_set_map_recus(node->lchild, tp_p, deep + 1);
 }
 
 /**
@@ -186,22 +229,40 @@ node_t *generate_huffman_tree(freq_table_t *table)
  */
 map_table_t *generate_mapping_table(node_t *root, int elem_num)
 {
-    return NULL;
+    map_table_t *new_table;
+    map_table_t *tp;
+
+    pr_debug("element number = %d", elem_num);
+    new_table = (map_table_t*)malloc(sizeof(map_table_t) * elem_num);
+    memset(new_table, 0, sizeof(map_table_t) * elem_num);
+    tp = new_table;
+    find_and_set_map_recus(root, &tp, 0);
+
+    return new_table;
 }
 
 int huffman_encode(char *string, int str_len)
 {
     node_t *huffman_tree;
     freq_table_t feq_table[ASCII_NUM_TOTAL];
+    map_table_t *huffman_map_table;
+    int elem_num = 0;
 
     memset(feq_table, 0, sizeof(freq_table_t) * ASCII_NUM_TOTAL);
     init_freq_table(string, str_len, feq_table);
-    huffman_tree = generate_huffman_tree(feq_table);
+    huffman_tree = generate_huffman_tree(feq_table, &elem_num);
     if (huffman_tree == NULL) {
         printf("wtf??\n");
         return EXE_ERROR;
     }
 
+    huffman_map_table = generate_mapping_table(huffman_tree, elem_num);
+    if (huffman_map_table == NULL) {
+        pr_error("huffman table failed");
+        return EXE_ERROR;
+    }
+
+    print_mapping_table(huffman_map_table);
     print_tree(huffman_tree);
     return EXE_OK;
 }

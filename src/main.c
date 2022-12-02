@@ -37,7 +37,7 @@ char *get_file_content(const char *input_file_path)
 
 int main(int argc, char *argv[])
 {
-    char test_string[] = "a";
+    char test_string[] = "abbcccdd";
     int len = strlen(test_string);
     if (huffman_encode(test_string, len) == EXE_OK) {
         printf("ok!\n");
